@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "apple-hdr-heic"
+version = "0.0.1"
+authors = [
+    { name="John Charankattu", email="john.ch.fr@gmail.com" },
+]
+description = "A library/tool to decode images in HEIC/HEIF format taken on Apple devices that contain HDR gain map."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+]
+dependencies = [
+    "colour-science>=0.4.6",
+    "numpy>=2.0.0",
+    "opencv-python-headless>=4.0",
+    "pillow>=11.0.0",
+    "pillow_heif>=0.20.0",
+    "PyExifTool>=0.5.6",
+]
+keywords = ["heic", "heif", "converter", "decoder", "HDR", "HDR Gain Map", "iPhone"]
+
+[project.scripts]
+apple-hdr-heic-decoder = "apple_hdr_heic.decoder:main"
+
+[project.urls]
+Homepage = "https://github.com/johncf/apple-hdr-heic"
