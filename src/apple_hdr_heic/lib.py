@@ -1,8 +1,13 @@
-import colour
+import warnings
+
 import cv2
 import numpy as np
 import pillow_heif
 from exiftool import ExifToolHelper
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")  # to ignore the missing matplotlib warning
+    import colour
 
 REF_WHITE_LUM = 203.0  # reference white luminance in nits
 
@@ -50,7 +55,7 @@ class AppleHDRMetadata:
 # ref https://developer.apple.com/documentation/appkit/images_and_pdf/applying_apple_hdr_effect_to_your_photos
 def combine_hdrgainmap(dp3_sdr, hdrgainmap, headroom: float):
     """
-    Combine the a (non-linear) Display P3 SDR image with its HDR gain map.
+    Combine a (non-linear) Display P3 SDR image with its HDR gain map.
 
     :param dp3_sdr: A float32 numpy array of shape (H1, W1, 3) with values between 0 and 1.
     :param hdrgainmap: A float32 numpy array of shape (H2, W2) with values between 0 and 1.
@@ -80,13 +85,13 @@ def load_and_combine_gainmap(file_name) -> np.ndarray:
     headroom = hdr_metadata.headroom
 
     heif_file = pillow_heif.open_heif(file_name)
-    dp3_sdr = np.asarray(heif_file) / np.float32(255)
-    hdrgainmap = hdrgainmap / np.float32(255)
     assert aux_type in heif_file.info["aux"]
     aux_id = heif_file.info["aux"][aux_type][0]
     aux_im = heif_file.get_aux_image(aux_id)
+    hdrgainmap = np.asarray(aux_im) / np.float32(255)
 
-    return combine_hdrgainmap(np.asarray(heif_file), np.asarray(aux_im), headroom)
+    dp3_sdr = np.asarray(heif_file) / np.float32(255)
+    return combine_hdrgainmap(dp3_sdr, hdrgainmap, headroom)
 
 
 def displayp3_to_bt2020(dp3_hdr):
