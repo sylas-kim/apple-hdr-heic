@@ -3,7 +3,7 @@ import argparse
 import cv2
 import numpy as np
 
-from apple_hdr_heic import load_as_bt2100_pq
+from apple_hdr_heic import load_as_bt2100_pq, quantize_to_uint16
 
 
 def main():
@@ -20,10 +20,9 @@ def main():
 
     assert args.input_image.lower().endswith(".heic")
     assert args.output_image.lower().endswith(".png")
-    rgb_hdr_pq = load_as_bt2100_pq(args.input_image)
-    rgb_hdr_pq_u16 = np.round(rgb_hdr_pq * np.iinfo(np.uint16).max).astype(np.uint16)
-    bgr_hdr_pq_u16 = cv2.cvtColor(rgb_hdr_pq_u16, cv2.COLOR_RGB2BGR)
-    cv2.imwrite(args.output_image, bgr_hdr_pq_u16)
+    bt2100_pq = load_as_bt2100_pq(args.input_image)
+    bt2100_pq_u16 = quantize_to_uint16(bt2100_pq)
+    cv2.imwrite(args.output_image, bt2100_pq_u16[:, :, ::-1])
     # adding cICP data to PNG files is difficult https://github.com/w3c/png/issues/312
     # see https://github.com/pnggroup/libpng/issues/508
     # see https://github.com/randy408/libspng/issues/218

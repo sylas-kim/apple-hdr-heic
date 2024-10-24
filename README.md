@@ -1,6 +1,6 @@
 # apple-hdr-heic
 
-A library/tool to decode photos (HEIC files) taken on an iPhone that contain HDR gain map, and convert it to a 48-bit (16-bit per channel) HDR representation.
+A library/tool to decode photos (HEIC files) taken on an iPhone that contain HDR gain map, and convert it to a 48-bit (16-bit per channel) HDR representation as per [Rec. 2100](https://en.wikipedia.org/wiki/Rec._2100) with PQ transfer function.
 
 Disclaimer: This project is NOT affiliated with, or endorsed by, Apple Inc. or any of its subsidiaries.
 
@@ -32,12 +32,11 @@ apple-hdr-heic-decode input.heic output.png
 Library usage:
 
 ```
-from apple_hdr_heic import apple_hdr_to_bt2100_pq
+from apple_hdr_heic import load_as_bt2100_pq, quantize_to_uint16
 
-rgb_hdr_pq = apple_hdr_to_bt2100_pq("input.heic")
-rgb_hdr_pq_u16 = np.round(rgb_hdr_pq * np.iinfo(np.uint16).max).astype(np.uint16)
-bgr_hdr_pq_u16 = cv2.cvtColor(rgb_hdr_pq_u16, cv2.COLOR_RGB2BGR)
-cv2.imwrite("output.png", bgr_hdr_pq_u16)
+bt2100_pq = load_as_bt2100_pq("input.heic")
+bt2100_pq_u16 = quantize_to_uint16(bt2100_pq)
+cv2.imwrite("output.png", bt2100_pq_u16[:, :, ::-1])
 ```
 
 The output file `output.png` does not contain the necessary [cICP](https://en.wikipedia.org/wiki/Coding-independent_code_points) metadata that denotes it to have `bt2020` (9) color primaries and `smpte2084` (16) transfer characteristics.
