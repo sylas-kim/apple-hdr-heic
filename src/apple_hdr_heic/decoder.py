@@ -23,9 +23,12 @@ def main():
     bt2100_pq = load_as_bt2100_pq(args.input_image)
     bt2100_pq_u16 = quantize_to_uint16(bt2100_pq)
     cv2.imwrite(args.output_image, bt2100_pq_u16[:, :, ::-1])
-    # adding cICP data to PNG files is difficult https://github.com/w3c/png/issues/312
-    # see https://github.com/pnggroup/libpng/issues/508
-    # see https://github.com/randy408/libspng/issues/218
+    # note: currently Pillow doesn't support 16-bit per channel RGB images
+    #       see https://github.com/python-pillow/Pillow/issues/1888
+    # note: adding cICP data to PNG files (to indicate BT.2100 PQ) is difficult
+    #       see https://github.com/w3c/png/issues/312
+    #       see https://github.com/pnggroup/libpng/issues/508
+    #       see https://github.com/randy408/libspng/issues/218
 
 
 if __name__ == "__main__":

@@ -31,7 +31,7 @@ apple-hdr-heic-decode input.heic output.png
 
 Library usage:
 
-```
+```py
 from apple_hdr_heic import load_as_bt2100_pq, quantize_to_uint16
 
 bt2100_pq = load_as_bt2100_pq("input.heic")
@@ -41,7 +41,7 @@ cv2.imwrite("output.png", bt2100_pq_u16[:, :, ::-1])
 
 The output file `output.png` does not contain the necessary [cICP](https://en.wikipedia.org/wiki/Coding-independent_code_points) metadata that denotes it to have `bt2020` (9) color primaries and `smpte2084` (16) transfer characteristics.
 
-To convert the above PNG to a 12-bit HDR AVIF file with appropriate metadata, do:
+To convert the above PNG to a 12-bit HDR AVIF file with appropriate metadata using [libavif](https://github.com/AOMediaCodec/libavif), do:
 
 ```
 avifenc -s 4 -j 4 --min 1 --max 56 -a end-usage=q -a cq-level=10 -a tune=ssim -a color:enable-qm=1 \

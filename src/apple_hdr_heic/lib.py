@@ -18,16 +18,16 @@ def combine_hdrgainmap(dp3_sdr, hdrgainmap, headroom: float):
     """
     Combine a (non-linear) Display P3 SDR image with its HDR gain map.
 
-    :param dp3_sdr: A float32 numpy array of shape (H1, W1, 3) with values between 0 and 1.
-    :param hdrgainmap: A float32 numpy array of shape (H2, W2) with values between 0 and 1.
+    :param dp3_sdr: A float32 numpy array of shape (H, W, 3) with values between 0 and 1.
+    :param hdrgainmap: A float32 numpy array of shape (H, W) with values between 0 and 1.
     :param headroom: The value of AppleHDRMetadata.headroom property of the image.
 
-    :returns: A float32 numpy array of shape (H1, W1, 3) with values between 0 and ``headroom``
+    :returns: A float32 numpy array of shape (H, W, 3) with values between 0 and ``headroom``
+    :exception AssertionError: if height and width of ``dp3_sdr`` does not match that of ``hdrgainmap``.
     """
     # note: Display P3 and sRGB have the same EOTF
     dp3_sdr_linear = colour.models.eotf_sRGB(dp3_sdr)
-    h, w = dp3_sdr.shape[:2]
-    hdrgainmap = cv2.resize(hdrgainmap, (w, h))
+    assert dp3_sdr.shape[:2] == hdrgainmap.shape
     hdrgainmap_linear = colour.models.eotf_sRGB(hdrgainmap)[:, :, None]
     return dp3_sdr_linear * (1.0 + (headroom - 1.0) * hdrgainmap_linear)
 
@@ -67,6 +67,7 @@ def load_and_combine_gainmap(file_name) -> np.ndarray:
     aux_id = heif_file.info["aux"][aux_type][0]
     aux_im = heif_file.get_aux_image(aux_id)
     hdrgainmap = np.asarray(aux_im) / np.float32(255)
+    hdrgainmap = cv2.resize(hdrgainmap, heif_file.size)
 
     dp3_sdr = np.asarray(heif_file) / np.float32(255)
     return combine_hdrgainmap(dp3_sdr, hdrgainmap, headroom)
