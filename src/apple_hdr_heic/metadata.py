@@ -1,12 +1,19 @@
+from dataclasses import dataclass
+
 from exiftool import ExifToolHelper
 
 
+@dataclass(kw_only=True, slots=True)
 class AppleHDRMetadata:
-    __slots__ = ["maker33", "maker48", "profile_desc", "hdrgainmap_version", "aux_type"]
+    maker33: float | None = None
+    maker48: float | None = None
+    profile_desc: str | None = None
+    hdrgainmap_version: int | None = None
+    aux_type: str | None = None
 
-    def __init__(self, file_name):
-        for attr in self.__slots__:
-            setattr(self, attr, None)
+    @classmethod
+    def from_file(cls, file_name):
+        metadata = cls()
         # we are primarily interested in maker tags 33 (0x0021) and 48 (0x0030)
         # see https://github.com/exiftool/exiftool/blob/405674e0/lib/Image/ExifTool/Apple.pm
         tag_patterns = ["XMP:HDR*", "Apple:HDR*", "ICC_Profile:ProfileDesc*", "Quicktime:Auxiliary*"]
@@ -14,15 +21,16 @@ class AppleHDRMetadata:
             tags = et.get_tags(file_name, tags=tag_patterns)[0]
             for tag, val in tags.items():
                 if tag == "XMP:HDRGainMapVersion":
-                    self.hdrgainmap_version = val
+                    metadata.hdrgainmap_version = val
                 elif tag == "MakerNotes:HDRHeadroom":
-                    self.maker33 = val
+                    metadata.maker33 = val
                 elif tag == "MakerNotes:HDRGain":
-                    self.maker48 = val
+                    metadata.maker48 = val
                 elif tag == "ICC_Profile:ProfileDescription":
-                    self.profile_desc = val
+                    metadata.profile_desc = val
                 elif tag == "Quicktime:AuxiliaryImageType":
-                    self.aux_type = val
+                    metadata.aux_type = val
+        return metadata
 
     @property
     def headroom(self) -> float:

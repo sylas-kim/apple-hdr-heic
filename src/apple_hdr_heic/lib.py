@@ -1,4 +1,4 @@
-import warnings
+import os
 
 import cv2
 import numpy as np
@@ -6,9 +6,10 @@ import pillow_heif
 
 from apple_hdr_heic.metadata import AppleHDRMetadata
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    import colour  # may raise a missing matplotlib warning
+os.environ["COLOUR_SCIENCE__FILTER_USAGE_WARNINGS"] = "True"
+os.environ["COLOUR_SCIENCE__DEFAULT_FLOAT_DTYPE"] = "float32"
+
+import colour  # may raise a missing matplotlib warning
 
 REF_WHITE_LUM = 203.0  # reference white luminance in nits
 
@@ -18,13 +19,15 @@ def combine_hdrgainmap(dp3_sdr, hdrgainmap, headroom: float):
     """
     Combine a (non-linear) Display P3 SDR image with its HDR gain map.
 
-    :param dp3_sdr: A float32 numpy array of shape (H, W, 3) with values between 0 and 1.
-    :param hdrgainmap: A float32 numpy array of shape (H, W) with values between 0 and 1.
+    :param dp3_sdr: A numpy array of shape (H, W, 3) with values between 0 and 1.
+    :param hdrgainmap: A numpy array of shape (H, W) with values between 0 and 1.
     :param headroom: The value of AppleHDRMetadata.headroom property of the image.
 
-    :returns: A float32 numpy array of shape (H, W, 3) with values between 0 and ``headroom``
+    :returns: A numpy array of shape (H, W, 3) with values between 0 and ``headroom``.
     :exception AssertionError: if height and width of ``dp3_sdr`` does not match that of ``hdrgainmap``.
     """
+    assert np.issubdtype(dp3_sdr.dtype, np.floating)
+    assert np.issubdtype(hdrgainmap.dtype, np.floating)
     # note: Display P3 and sRGB have the same EOTF
     dp3_sdr_linear = colour.models.eotf_sRGB(dp3_sdr)
     assert dp3_sdr.shape[:2] == hdrgainmap.shape
@@ -36,16 +39,16 @@ def displayp3_to_bt2020(dp3_hdr):
     """
     Converts an image in Display P3 color space to BT.2020 color space, using simple linear transformation.
 
-    :param dp3_hdr: A float32 array of shape (H, W, 3) in linear Display P3 color space.
+    :param dp3_hdr: A numpy array of shape (H, W, 3) in linear Display P3 color space.
 
-    :returns: A float32 array of shape (H, W, 3) in linear BT.2020 color space, with negative values truncated to zero.
+    :returns: A numpy array of shape (H, W, 3) in linear BT.2020 color space,
+        with negative values truncated to zero and dtype the same as ``dp3_sdr``
     """
+    assert np.issubdtype(dp3_hdr.dtype, np.floating)
     input_colourspace = colour.RGB_COLOURSPACES["Display P3"]
     output_colourspace = colour.RGB_COLOURSPACES["ITU-R BT.2020"]
-    transform_matrix = colour.matrix_RGB_to_RGB(input_colourspace, output_colourspace)
+    transform_matrix = colour.matrix_RGB_to_RGB(input_colourspace, output_colourspace).astype(dp3_hdr.dtype)
     bt2020_hdr = np.tensordot(dp3_hdr, transform_matrix, axes=(2, 1))
-    #bt2020_hdr = np.einsum("hwj,ij->hwi", dp3_hdr, transform_matrix)  # same as above tensordot but slower
-
     return np.clip(bt2020_hdr, 0.0, None, out=bt2020_hdr)
 
 
@@ -57,7 +60,7 @@ def load_and_combine_gainmap(file_name) -> np.ndarray:
 
     :returns: A float32 numpy array of shape (H, W, 3) in linear Display P3 color space.
     """
-    hdr_metadata = AppleHDRMetadata(file_name)
+    hdr_metadata = AppleHDRMetadata.from_file(file_name)
     assert hdr_metadata.profile_desc == "Display P3"
     aux_type = hdr_metadata.aux_type or "urn:com:apple:photo:2020:aux:hdrgainmap"
     headroom = hdr_metadata.headroom
