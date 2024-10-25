@@ -67,7 +67,7 @@ def load_and_combine_gainmap(file_name) -> np.ndarray:
     aux_id = heif_file.info["aux"][aux_type][0]
     aux_im = heif_file.get_aux_image(aux_id)
     hdrgainmap = np.asarray(aux_im) / np.float32(255)
-    hdrgainmap = cv2.resize(hdrgainmap, heif_file.size)
+    hdrgainmap = cv2.resize(hdrgainmap, heif_file.size, interpolation=cv2.INTER_CUBIC)
 
     dp3_sdr = np.asarray(heif_file) / np.float32(255)
     return combine_hdrgainmap(dp3_sdr, hdrgainmap, headroom)
