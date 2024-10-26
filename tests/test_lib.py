@@ -25,8 +25,8 @@ def test_quantize() -> None:
 
 
 def test_combine() -> None:
-    test_sdr = np.linspace(0., 1.0, num=12, dtype=np.float32).reshape(2, 2, 3)
-    test_gainmap = np.linspace(0., 1.0, num=4, dtype=np.float32).reshape(2, 2)
+    test_sdr = np.linspace(0.0, 1.0, num=12, dtype=np.float32).reshape(2, 2, 3)
+    test_gainmap = np.linspace(0.0, 1.0, num=4, dtype=np.float32).reshape(2, 2)
     headroom = 4.0
     combined = combine_hdrgainmap(test_sdr, test_gainmap, headroom)
     assert np.all(0 <= combined)

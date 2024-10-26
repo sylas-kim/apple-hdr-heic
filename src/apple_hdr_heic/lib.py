@@ -105,7 +105,7 @@ def quantize_to_uint16(float_array: npt.NDArray[np.floating]) -> npt.NDArray[np.
 
     :returns: A uint16 numpy array.
     """
-    quantized = float_array * 0xffff
+    quantized = float_array * 0xFFFF
     np.round(quantized, out=quantized)
-    np.clip(quantized, 0, 0xffff, out=quantized)
+    np.clip(quantized, 0, 0xFFFF, out=quantized)
     return quantized.astype(np.uint16)
