@@ -32,3 +32,13 @@ apple-hdr-heic-decoder = "apple_hdr_heic.decoder:main"
 
 [project.urls]
 Homepage = "https://github.com/johncf/apple-hdr-heic"
+
+[tool.mypy]
+python_version = "3.10"
+
+[[tool.mypy.overrides]]
+module = [
+    "exiftool",
+    "pillow_heif",
+]
+ignore_missing_imports = true
