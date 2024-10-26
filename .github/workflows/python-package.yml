@@ -41,3 +41,6 @@ jobs:
     - name: Type check
       run: |
         hatch run test:typing
+    - name: Build
+      run: |
+        hatch build
