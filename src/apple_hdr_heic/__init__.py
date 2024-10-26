@@ -1,4 +1,3 @@
-from .metadata import AppleHDRMetadata
 from .lib import (
     combine_hdrgainmap,
     displayp3_to_bt2020,
@@ -6,6 +5,7 @@ from .lib import (
     load_as_bt2100_pq,
     quantize_to_uint16,
 )
+from .metadata import AppleHDRMetadata
 
 __all__ = [
     "AppleHDRMetadata",
