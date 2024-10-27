@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 
 from exiftool import ExifToolHelper
 
@@ -12,7 +13,7 @@ class AppleHDRMetadata:
     aux_type: str | None = None
 
     @classmethod
-    def from_file(cls, file_name):
+    def from_file(cls, file_name: str | Path):
         metadata = cls()
         # we are primarily interested in maker tags 33 (0x0021) and 48 (0x0030)
         # see https://github.com/exiftool/exiftool/blob/405674e0/lib/Image/ExifTool/Apple.pm

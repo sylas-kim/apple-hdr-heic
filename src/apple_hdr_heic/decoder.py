@@ -5,7 +5,7 @@ import cv2
 from apple_hdr_heic import load_as_bt2100_pq, quantize_to_uint16
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="apple-hdr-heic-decoder",
         description=(

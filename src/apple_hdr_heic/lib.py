@@ -1,7 +1,9 @@
 import os
+from pathlib import Path
 
 import cv2
 import numpy as np
+import numpy.typing as npt
 import pillow_heif
 
 from apple_hdr_heic.metadata import AppleHDRMetadata
@@ -15,7 +17,11 @@ REF_WHITE_LUM = 203.0  # reference white luminance in nits
 
 
 # ref https://developer.apple.com/documentation/appkit/images_and_pdf/applying_apple_hdr_effect_to_your_photos
-def combine_hdrgainmap(dp3_sdr, hdrgainmap, headroom: float):
+def combine_hdrgainmap(
+    dp3_sdr: npt.NDArray[np.floating],
+    hdrgainmap: npt.NDArray[np.floating],
+    headroom: float,
+) -> npt.NDArray[np.floating]:
     """
     Combine a (non-linear) Display P3 SDR image with its HDR gain map.
 
@@ -35,7 +41,7 @@ def combine_hdrgainmap(dp3_sdr, hdrgainmap, headroom: float):
     return dp3_sdr_linear * (1.0 + (headroom - 1.0) * hdrgainmap_linear)
 
 
-def displayp3_to_bt2020(dp3_hdr):
+def displayp3_to_bt2020(dp3_hdr: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
     """
     Converts an image in Display P3 color space to BT.2020 color space, using simple linear transformation.
 
@@ -52,7 +58,7 @@ def displayp3_to_bt2020(dp3_hdr):
     return np.clip(bt2020_hdr, 0.0, None, out=bt2020_hdr)
 
 
-def load_and_combine_gainmap(file_name) -> np.ndarray:
+def load_and_combine_gainmap(file_name: str | Path) -> npt.NDArray[np.floating]:
     """
     Loads an HEIC file and returns the HDR image in linear Display P3 color space.
 
@@ -70,13 +76,13 @@ def load_and_combine_gainmap(file_name) -> np.ndarray:
     aux_id = heif_file.info["aux"][aux_type][0]
     aux_im = heif_file.get_aux_image(aux_id)
     hdrgainmap = np.asarray(aux_im) / np.float32(255)
-    hdrgainmap = cv2.resize(hdrgainmap, heif_file.size)  # bilinear
+    hdrgainmap = cv2.resize(hdrgainmap, heif_file.size)  # type: ignore  # bilinear
 
     dp3_sdr = np.asarray(heif_file) / np.float32(255)
     return combine_hdrgainmap(dp3_sdr, hdrgainmap, headroom)
 
 
-def load_as_bt2100_pq(file_name, white_lum: float = REF_WHITE_LUM):
+def load_as_bt2100_pq(file_name: str | Path, white_lum: float = REF_WHITE_LUM) -> npt.NDArray[np.floating]:
     """
     Loads an HEIC file and returns the HDR image in non-linear BT.2100 PQ color space.
 
@@ -91,7 +97,7 @@ def load_as_bt2100_pq(file_name, white_lum: float = REF_WHITE_LUM):
     return colour.models.eotf_inverse_BT2100_PQ(white_lum * bt2020_hdr)
 
 
-def quantize_to_uint16(float_array: np.ndarray) -> np.ndarray:
+def quantize_to_uint16(float_array: npt.NDArray[np.floating]) -> npt.NDArray[np.uint16]:
     """
     Quantizes a floating point numpy array with values in the unit interval to a 16-bit unsigned integer.
 
@@ -99,7 +105,7 @@ def quantize_to_uint16(float_array: np.ndarray) -> np.ndarray:
 
     :returns: A uint16 numpy array.
     """
-    quantized = float_array * 0xffff
+    quantized = float_array * 0xFFFF
     np.round(quantized, out=quantized)
-    np.clip(quantized, 0, 0xffff, out=quantized)
+    np.clip(quantized, 0, 0xFFFF, out=quantized)
     return quantized.astype(np.uint16)
