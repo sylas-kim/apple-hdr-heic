@@ -40,6 +40,7 @@ jobs:
         cp requirements.txt requirements.old.txt
         uv pip compile pyproject.toml -o requirements.txt
         diff requirements.old.txt requirements.txt
+        rm requirements.old.txt
     - name: Build
       run: |
         uvx flit build
