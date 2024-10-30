@@ -47,9 +47,9 @@ module = [
 ]
 ignore_missing_imports = true
 
-[tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
+[tool.uv]
+# disable cache for easier development
+reinstall-package = ["apple-hdr-heic"]
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -63,35 +63,4 @@ exclude = [
   ".gitignore",
   ".github",
   "tests",
-]
-
-[tool.hatch.envs.test]
-dependencies = [
-  "mypy",
-  "pytest",
-]
-
-[tool.hatch.envs.test.scripts]
-typing = [
-  "mypy src tests",
-]
-unit = [
-  "pytest tests",
-]
-
-[tool.hatch.envs.style]
-detached = true
-dependencies = [
-  "ruff",
-  "isort",
-]
-
-[tool.hatch.envs.style.scripts]
-check = [
-  "ruff check --diff src tests",
-  "isort --check-only --diff src tests",
-  #"ruff format --diff",
-]
-fmt = [
-  "isort src tests",
 ]

@@ -10,7 +10,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  tests:
 
     runs-on: ubuntu-24.04
     strategy:
@@ -30,17 +30,16 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y libimage-exiftool-perl
-    - name: Install Hatch
-      uses: pypa/hatch@install
-    - name: Linting
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+    - name: Run nox
       run: |
-        hatch run style:check
-    - name: Unit tests
+        uvx nox
+    - name: Check pip-compile
       run: |
-        hatch run test:unit
-    - name: Type check
-      run: |
-        hatch run test:typing
+        cp requirements.txt requirements.old.txt
+        uv pip compile pyproject.toml -o requirements.txt
+        diff requirements.old.txt requirements.txt
     - name: Build
       run: |
-        hatch build
+        uvx hatch build
