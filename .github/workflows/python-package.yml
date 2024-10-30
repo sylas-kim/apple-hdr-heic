@@ -42,4 +42,4 @@ jobs:
         diff requirements.old.txt requirements.txt
     - name: Build
       run: |
-        uvx hatch build
+        uvx flit build

@@ -83,3 +83,10 @@ nox -s lint
 ```
 nox -s style
 ```
+
+### Building
+
+```
+uv tool install flit
+flit build
+```
