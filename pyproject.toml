@@ -34,6 +34,9 @@ apple-hdr-heic-decoder = "apple_hdr_heic.decoder:main"
 [project.urls]
 Homepage = "https://github.com/johncf/apple-hdr-heic"
 
+[tool.ruff]
+line-length = 110
+
 [tool.mypy]
 python_version = "3.10"
 

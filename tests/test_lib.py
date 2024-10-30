@@ -34,25 +34,25 @@ def test_combine() -> None:
     assert combined.dtype == np.float32
     quant_combined = quantize_to_uint16(combined / headroom)
     qc_expected = [[[0, 142, 454], [1260, 2268, 3635]],
-                   [[9344, 13107, 17630], [41622, 52790, 0xFFFF]]]
+                   [[9344, 13107, 17630], [41622, 52790, 0xFFFF]]]  # fmt: skip
     assert np.all(quant_combined == qc_expected)
 
 
 def test_dp3_to_bt2020() -> None:
     dp3 = np.array([[[0, 0, 0], [1, 1, 1]],
-                    [[2, 0, 0], [0, 2, 2]]], dtype=np.float32)
+                    [[2, 0, 0], [0, 2, 2]]], dtype=np.float32)  # fmt: skip
     bt2020 = displayp3_to_bt2020(dp3)
     assert np.all(bt2020 >= 0)
     assert bt2020.dtype == np.float32
     bt2020_expected = [[[0., 0., 0.], [1., 1., 1.]],
-                       [[1.5076661, 0.0914877, 0.0], [0.49233395, 1.9085124, 2.0024207]]]
+                       [[1.5076661, 0.0914877, 0.0], [0.49233395, 1.9085124, 2.0024207]]]  # fmt: skip
     assert np.allclose(bt2020, bt2020_expected)
 
 
 def test_load_and_combine() -> None:
     dp3_hdr = load_and_combine_gainmap(DATA_DIR / "hdr-sample.heic")
     assert np.all(dp3_hdr >= 0.0)
-    assert np.all(dp3_hdr <= 7.38)  # note: 7.3717 is the headroom
+    assert np.all(dp3_hdr <= 7.372)  # note: 7.3717 is the headroom
     assert dp3_hdr.dtype == np.float32
 
 
