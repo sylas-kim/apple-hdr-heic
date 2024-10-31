@@ -14,7 +14,6 @@ def test(session):
 @nox.session
 def typeck(session):
     session.install("-r", "requirements.txt")
-    session.install(".")
     session.install("mypy")
     session.run("mypy", "src", "tests")
 
