@@ -88,5 +88,5 @@ nox -s style
 
 ```
 uv tool install flit
-flit build
+flit build --no-use-vcs
 ```

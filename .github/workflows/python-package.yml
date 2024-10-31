@@ -43,4 +43,4 @@ jobs:
         rm requirements.old.txt
     - name: Build
       run: |
-        uvx flit build
+        uvx flit build --no-use-vcs
