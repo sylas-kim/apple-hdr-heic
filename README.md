@@ -47,3 +47,46 @@ To convert the above PNG to a 12-bit HDR AVIF file with appropriate metadata usi
 avifenc -s 4 -j 4 --min 1 --max 56 -a end-usage=q -a cq-level=10 -a tune=ssim -a color:enable-qm=1 \
     -a color:enable-chroma-deltaq=1 -d 12 --cicp 9/16/9 output.png output.avif
 ```
+
+## Development
+
+### Environment Set Up
+
+Install [`uv`](https://github.com/astral-sh/uv).
+
+Install `nox` using `uv`:
+
+```
+uv tool install nox
+```
+
+### Unit Testing
+
+```
+nox -s test
+```
+
+### Type Checking
+
+```
+nox -s typeck
+```
+
+### Linting
+
+```
+nox -s lint
+```
+
+### Formatting
+
+```
+nox -s style
+```
+
+### Building
+
+```
+uv tool install flit
+flit build
+```
