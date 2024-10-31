@@ -5,6 +5,7 @@ nox.options.default_venv_backend = "uv|virtualenv"
 
 @nox.session
 def test(session):
+    session.install("-r", "requirements.txt")
     session.install(".")
     session.install("pytest")
     session.run("pytest")
@@ -12,6 +13,7 @@ def test(session):
 
 @nox.session
 def typeck(session):
+    session.install("-r", "requirements.txt")
     session.install(".")
     session.install("mypy")
     session.run("mypy", "src", "tests")
