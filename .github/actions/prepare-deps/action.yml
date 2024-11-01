@@ -1,0 +1,16 @@
+name: prepare-deps
+description: install python and other deps
+runs:
+  using: composite
+  steps:
+  - name: Set up Python ${{ matrix.python-version }}
+    uses: actions/setup-python@v3
+    with:
+      python-version: ${{ matrix.python-version }}
+  - name: Install dependencies
+    run: |
+      sudo apt-get update
+      sudo apt-get install -y libimage-exiftool-perl
+    shell: bash
+  - name: Install uv
+    uses: astral-sh/setup-uv@v3
