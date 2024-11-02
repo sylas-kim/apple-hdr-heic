@@ -1,12 +1,17 @@
 name: prepare-deps
 description: install python and other deps
+inputs:
+  python-version:
+    description: 'Python Version'
+    required: true
+    default: '3.10'
 runs:
   using: composite
   steps:
-  - name: Set up Python ${{ matrix.python-version }}
+  - name: Set up Python ${{ inputs.python-version }}
     uses: actions/setup-python@v5
     with:
-      python-version: ${{ matrix.python-version }}
+      python-version: ${{ inputs.python-version }}
   - name: Install dependencies
     run: |
       sudo apt-get update
