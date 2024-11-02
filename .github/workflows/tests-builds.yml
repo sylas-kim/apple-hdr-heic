@@ -10,7 +10,6 @@ on:
 
 jobs:
   test-source:
-
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -43,7 +42,6 @@ jobs:
         retention-days: 3
 
   test-pkg-dist:
-
     needs: test-source
     runs-on: ubuntu-24.04
     strategy:
@@ -64,10 +62,11 @@ jobs:
     - name: Remove src directory
       run: |
         rm -r src
-    - name: Test source distribution
+    - name: Install distribution (without requirements.txt)
       run: |
         uv venv
-        source .venv/bin/activate
-        uv pip install apple_hdr_heic-*.${{ matrix.dist-type }}
+        uv pip install ./apple_hdr_heic-*.${{ matrix.dist-type }}
+    - name: Install and run pytest
+      run: |
         uv pip install pytest
-        pytest tests
+        .venv/bin/pytest tests
