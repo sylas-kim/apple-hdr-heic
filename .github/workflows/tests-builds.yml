@@ -1,0 +1,79 @@
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Tests and builds
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  test-source:
+
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        lfs: true
+    - uses: ./.github/actions/prepare-deps
+    - name: Run nox
+      run: |
+        uvx nox
+    - name: Check pip-compile
+      run: |
+        cp requirements.txt requirements.old.txt
+        uv pip compile pyproject.toml -o requirements.txt
+        diff requirements.old.txt requirements.txt
+        rm requirements.old.txt
+    - name: Build package
+      run: |
+        uvx flit build --no-use-vcs
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: dist
+        retention-days: 3
+
+  test-artifacts:
+
+    needs: test-source
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        lfs: true
+    - uses: ./.github/actions/prepare-deps
+    - name: Download build-artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+    - name: Remove src directory
+      run: |
+        rm -r src
+    - name: Test wheel distribution
+      run: |
+        uv venv
+        source .venv/bin/activate
+        uv pip install dist/apple_hdr_heic-*.whl
+        uv pip install pytest
+        pytest tests
+      continue-on-error: true
+    - name: Test source distribution
+      run: |
+        uv venv
+        source .venv/bin/activate
+        uv pip install dist/apple_hdr_heic-*.tar.gz
+        uv pip install pytest
+        pytest tests
