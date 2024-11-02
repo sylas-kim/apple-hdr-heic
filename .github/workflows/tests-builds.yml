@@ -42,7 +42,7 @@ jobs:
         path: dist
         retention-days: 3
 
-  test-artifacts:
+  test-pkg-dist:
 
     needs: test-source
     runs-on: ubuntu-24.04
@@ -50,6 +50,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10"]
+        dist-type: ["tar.gz", "whl"]
 
     steps:
     - uses: actions/checkout@v4
@@ -63,18 +64,10 @@ jobs:
     - name: Remove src directory
       run: |
         rm -r src
-    - name: Test wheel distribution
-      run: |
-        uv venv
-        source .venv/bin/activate
-        uv pip install dist/apple_hdr_heic-*.whl
-        uv pip install pytest
-        pytest tests
-      continue-on-error: true
     - name: Test source distribution
       run: |
         uv venv
         source .venv/bin/activate
-        uv pip install dist/apple_hdr_heic-*.tar.gz
+        uv pip install apple_hdr_heic-*.${{ matrix.dist-type }}
         uv pip install pytest
         pytest tests
