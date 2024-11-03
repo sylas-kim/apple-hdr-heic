@@ -1,0 +1,21 @@
+name: prepare-deps
+description: install python and other deps
+inputs:
+  python-version:
+    description: 'Python Version'
+    required: true
+    default: '3.10'
+runs:
+  using: composite
+  steps:
+  - name: Set up Python ${{ inputs.python-version }}
+    uses: actions/setup-python@v5
+    with:
+      python-version: ${{ inputs.python-version }}
+  - name: Install dependencies
+    run: |
+      sudo apt-get update
+      sudo apt-get install -y libimage-exiftool-perl
+    shell: bash
+  - name: Install uv
+    uses: astral-sh/setup-uv@v3

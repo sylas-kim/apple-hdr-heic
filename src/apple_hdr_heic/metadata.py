@@ -12,8 +12,9 @@ class AppleHDRMetadata:
     hdrgainmap_version: int | None = None
     aux_type: str | None = None
 
+    # TODO after Python 3.11, the return type should be Self
     @classmethod
-    def from_file(cls, file_name: str | Path):
+    def from_file(cls, file_name: str | Path) -> "AppleHDRMetadata":
         metadata = cls()
         # we are primarily interested in maker tags 33 (0x0021) and 48 (0x0030)
         # see https://github.com/exiftool/exiftool/blob/405674e0/lib/Image/ExifTool/Apple.pm

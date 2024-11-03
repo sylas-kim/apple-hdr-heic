@@ -1,0 +1,73 @@
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Tests and builds
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  test-source:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        lfs: true
+    - uses: ./.github/actions/prepare-deps
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Run nox
+      run: |
+        uvx nox
+    - name: Check pip-compile
+      run: |
+        cp requirements.txt requirements.old.txt
+        uv pip compile pyproject.toml -o requirements.txt
+        diff requirements.old.txt requirements.txt
+        rm requirements.old.txt
+    - name: Build package
+      run: |
+        uvx flit build --no-use-vcs
+    - name: Upload build artifacts (if Python 3.10)
+      if: matrix.python-version == '3.10'
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: dist
+        retention-days: 3
+
+  test-pkg-dist:
+    needs: test-source
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        dist-type: ["tar.gz", "whl"]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        lfs: true
+    - uses: ./.github/actions/prepare-deps
+    - name: Download build-artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+    - name: Remove src directory
+      run: |
+        rm -r src
+    - name: Install distribution (without requirements.txt)
+      run: |
+        uv venv
+        uv pip install ./apple_hdr_heic-*.${{ matrix.dist-type }}
+    - name: Install and run pytest
+      run: |
+        uv pip install pytest
+        .venv/bin/pytest tests
