@@ -1,0 +1,59 @@
+# https://docs.pypi.org/trusted-publishers/using-a-publisher/#github-actions
+
+name: Publish release to Test.PyPI
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  release-build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        lfs: true
+    - uses: ./.github/actions/prepare-deps
+    - name: Build release distributions
+      run: |
+        uvx flit build --no-use-vcs
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-dists
+        path: dist/
+
+  pypi-publish:
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    needs:
+    - release-build
+
+    permissions:
+      id-token: write  # IMPORTANT: this is mandatory for trusted publishing
+
+    environment:
+      name: publishr
+      url: https://test.pypi.org/p/apple-hdr-heic
+
+    steps:
+    - name: Retrieve build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: release-dists
+        path: dist/
+    - name: Verify version and tags
+      run: |
+        filever=$(ls dist | sed -r 's/apple_hdr_heic-(.*)\.tar\.gz/\1/')
+        tagver=$(echo '${{ github.ref }}' | sed -r 's#refs/tags/v(.*)#\1#')
+        echo "filever=$filever" "tagver=$tagver"
+        test "$filever" = "$tagver"
+    - name: Publish release distributions to Test.PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/
