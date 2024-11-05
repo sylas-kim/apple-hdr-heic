@@ -1,10 +1,10 @@
 # https://docs.pypi.org/trusted-publishers/using-a-publisher/#github-actions
 
-name: Publish release to Test.PyPI
+name: Publish release to PyPI (or Test.PyPI)
 
 on:
   release:
-    types: [published]
+    types: [prereleased, released]
 
 permissions:
   contents: read
@@ -21,13 +21,19 @@ jobs:
     - name: Build release distributions
       run: |
         uvx flit build --no-use-vcs
+    - name: Verify version and tags
+      run: |
+        filever=$(ls dist | sed -nr 's/apple_hdr_heic-(.*)\.tar\.gz/\1/p')
+        tagver=$(echo '${{ github.ref }}' | sed -r 's#refs/tags/v(.*)#\1#')
+        echo "filever=$filever" "tagver=$tagver"
+        test "$filever" = "$tagver"
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: release-dists
         path: dist/
 
-  pypi-publish:
+  test-pypi-publish:
     runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/v')
 
@@ -38,7 +44,7 @@ jobs:
       id-token: write  # IMPORTANT: this is mandatory for trusted publishing
 
     environment:
-      name: publishr
+      name: test-publish
       url: https://test.pypi.org/p/apple-hdr-heic
 
     steps:
@@ -47,13 +53,31 @@ jobs:
       with:
         name: release-dists
         path: dist/
-    - name: Verify version and tags
-      run: |
-        filever=$(ls dist | sed -nr 's/apple_hdr_heic-(.*)\.tar\.gz/\1/p')
-        tagver=$(echo '${{ github.ref }}' | sed -r 's#refs/tags/v(.*)#\1#')
-        echo "filever=$filever" "tagver=$tagver"
-        test "$filever" = "$tagver"
     - name: Publish release distributions to Test.PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
+
+  pypi-publish:
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/v') && github.event.action == 'released'
+
+    needs:
+    - release-build
+    - test-pypi-publish
+
+    permissions:
+      id-token: write
+
+    environment:
+      name: pypi-publish
+      url: https://pypi.org/p/apple-hdr-heic
+
+    steps:
+    - name: Retrieve build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: release-dists
+        path: dist/
+    - name: Publish release distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
