@@ -27,6 +27,8 @@ CLI tool:
 
 ```
 apple-hdr-heic-decode input.heic output.png
+apple-hdr-heic-decode input.heic output.heic -q 95
+apple-hdr-heic-decode input.heic output.avif -b 12
 ```
 
 Library usage:
@@ -39,14 +41,7 @@ bt2100_pq_u16 = quantize_to_uint16(bt2100_pq)
 cv2.imwrite("output.png", bt2100_pq_u16[:, :, ::-1])
 ```
 
-The output file `output.png` does not contain the necessary [cICP](https://en.wikipedia.org/wiki/Coding-independent_code_points) metadata that denotes it to have `bt2020` (9) color primaries and `smpte2084` (16) transfer characteristics.
-
-To convert the above PNG to a 12-bit HDR AVIF file with appropriate metadata using [libavif](https://github.com/AOMediaCodec/libavif), do:
-
-```
-avifenc -s 4 -j 4 --min 1 --max 56 -a end-usage=q -a cq-level=10 -a tune=ssim -a color:enable-qm=1 \
-    -a color:enable-chroma-deltaq=1 -d 12 --cicp 9/16/9 output.png output.avif
-```
+Note: The output file `output.png` (in both examples above) does not contain the necessary [cICP](https://en.wikipedia.org/wiki/Coding-independent_code_points) metadata that denotes it to have `bt2020` (9) color primaries and `smpte2084` (16) transfer characteristics.
 
 ## Development
 
@@ -89,4 +84,15 @@ nox -s style
 ```
 uv tool install flit
 flit build --no-use-vcs
+```
+
+## Notes About HEIC and AVIF Output
+
+The default `--quality` when using an output format of `.heic` or `.avif` is "lossless", however it is not truly lossless in the same sense as with PNG, because PNG uses 16-bits per channel, while HEIC and AVIF can only use up to 12-bits per channel. Furthermore, AVIF uses 4:2:0 chroma-subsampling, which is not "lossless".
+
+If you want to produce an AVIF file with more control (e.g., with 4:4:4 chroma-subsampling), first use this tool to produce a PNG file, then use [libavif](https://github.com/AOMediaCodec/libavif) to convert the PNG to AVIF:
+
+```
+avifenc -s 4 -j 4 --min 1 --max 56 -a end-usage=q -a cq-level=10 -a tune=ssim -a color:enable-qm=1 \
+    -a color:enable-chroma-deltaq=1 -d 12 --cicp 9/16/9 output.png output.avif
 ```
