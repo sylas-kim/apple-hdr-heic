@@ -2,7 +2,7 @@
 
 A library/tool to decode photos (HEIC files) taken on an iPhone that contain HDR gain map, and convert it to a 48-bit (16-bit per channel) HDR representation as per [Rec. 2100](https://en.wikipedia.org/wiki/Rec._2100) with PQ transfer function.
 
-Disclaimer: This project is NOT affiliated with, or endorsed by, Apple Inc. or any of its subsidiaries.
+**Disclaimer:** This project is _not_ affiliated with, or endorsed by, Apple Inc. or any of its subsidiaries.
 
 ## Pre-requisites
 
@@ -15,7 +15,13 @@ Disclaimer: This project is NOT affiliated with, or endorsed by, Apple Inc. or a
 
 ## Installation
 
-Clone this repository, create a python environment and do:
+To install the latest published version, do (preferrably in a [virtual environment](https://docs.python.org/3/library/venv.html)):
+
+```
+pip install apple-hdr-heic
+```
+
+Or if you want the latest development version, clone this repository, and do:
 
 ```
 pip install .
