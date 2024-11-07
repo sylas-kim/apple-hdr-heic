@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 import cv2
+import pillow_heif
 from pillow_heif import HeifFile
 
 from apple_hdr_heic import load_as_bt2100_pq, quantize_to_uint16
@@ -12,26 +13,34 @@ def main() -> None:
         prog="apple-hdr-heic-decoder",
         description=(
             "Decode an HEIC image file containing HDR gain map and other metadata (in Apple's format) to "
-            "a 48-bit PNG file or a 10-bit HEIC file in BT.2100 color space with PQ transfer function."
+            "a 48-bit PNG file or a 10- or 12-bit HEIC or AVIF file in BT.2100 color space with PQ transfer function."
         ),
     )
     parser.add_argument("input_image", help="Input HEIC image path")
     parser.add_argument("output_image", help="Output image path (supports: .png, .heic)")
     parser.add_argument(
-        "--quality", type=int, default=-1, help=(
-            "Output image quality; 0 = lowest; 100 = highest; ignored for .png (default: lossless)"
+        "-q", "--quality", type=int, default=-1, help=(
+            "Output image quality; 0 = lowest; 100 = highest; ignored for .png (default: lossless, see readme)"
+        ),
+    )
+    parser.add_argument(
+        "-b", "--bitdepth", type=int, default=10, choices=[10, 12], help=(
+            "Output channel bit-depth; ignored for .png (default: 10-bit)"
         ),
     )
     args = parser.parse_args()
 
     assert args.input_image.lower().endswith(".heic")
+    assert -1 <= args.quality <= 100
     bt2100_pq = load_as_bt2100_pq(args.input_image)
     bt2100_pq_u16 = quantize_to_uint16(bt2100_pq)
     output_ext = Path(args.output_image).suffix.lower()
     if output_ext == ".png":
         write_png(args.output_image, bt2100_pq_u16)
     elif output_ext == ".heic":
-        write_heic(args.output_image, bt2100_pq_u16, quality=args.quality)
+        write_heif(args.output_image, bt2100_pq_u16, quality=args.quality, bitdepth=args.bitdepth)
+    elif output_ext == ".avif":
+        write_heif(args.output_image, bt2100_pq_u16, format="AVIF", quality=args.quality, bitdepth=args.bitdepth)
     else:
         raise ValueError(f"Output file type not supported: {output_ext}")
 
@@ -46,8 +55,9 @@ def write_png(out_path, rgb_data):
     #       see https://github.com/randy408/libspng/issues/218
 
 
-def write_heic(out_path, rgb_data, quality=-1):
-    # pillow_heif.options.SAVE_HDR_TO_12_BIT = False
+def write_heif(out_path, rgb_data, format="HEIF", quality=-1, bitdepth=10):
+    if bitdepth == 12:
+        pillow_heif.options.SAVE_HDR_TO_12_BIT = True
     imsize = (rgb_data.shape[1], rgb_data.shape[0])
     heif_file = HeifFile()
     added_image = heif_file.add_frombytes(
@@ -59,7 +69,7 @@ def write_heic(out_path, rgb_data, quality=-1):
     added_image.info["transfer_characteristics"] = 16
     added_image.info["matrix_coefficients"] = 9
     added_image.info["full_range_flag"] = 1
-    heif_file.save(out_path, format="HEIF", quality=quality)
+    heif_file.save(out_path, format=format, quality=quality)
 
 
 if __name__ == "__main__":
