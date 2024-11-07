@@ -69,7 +69,7 @@ def load_and_combine_gainmap(file_name: str | Path) -> npt.NDArray[np.floating]:
     hdr_metadata = AppleHDRMetadata.from_file(file_name)
     assert hdr_metadata.profile_desc == "Display P3"
     aux_type = hdr_metadata.aux_type or "urn:com:apple:photo:2020:aux:hdrgainmap"
-    headroom = hdr_metadata.headroom
+    headroom = hdr_metadata.compute_headroom()
 
     heif_file = pillow_heif.open_heif(file_name)
     assert aux_type in heif_file.info["aux"]
