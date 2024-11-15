@@ -17,17 +17,15 @@ def main() -> None:
         ),
     )
     parser.add_argument("input_image", help="Input HEIC image path")
-    parser.add_argument("output_image", help="Output image path (supports: .png, .heic)")
+    parser.add_argument("output_image", help="Output image path (supports: .png, .heic, .avif)")
     parser.add_argument(
-        "-q", "--quality", type=int, default=-1, help=(
-            "Output image quality; 0 = lowest; 100 = highest; ignored for .png (default: lossless, see readme)"
-        ),
-    )
+        "-q", "--quality", type=int, default=-1,
+        help="Output image quality; 0 = lowest; 100 = highest; ignored for .png (default: lossless, see readme)",
+    )  # fmt: skip
     parser.add_argument(
-        "-b", "--bitdepth", type=int, default=10, choices=[10, 12], help=(
-            "Output channel bit-depth; ignored for .png (default: 10-bit)"
-        ),
-    )
+        "-b", "--bitdepth", type=int, default=10, choices=[10, 12],
+        help="Output channel bit-depth; ignored for .png (default: 10-bit)",
+    )  # fmt: skip
     args = parser.parse_args()
 
     assert args.input_image.lower().endswith(".heic")
