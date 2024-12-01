@@ -92,27 +92,42 @@ def load_as_displayp3_linear(file_name: str | Path) -> FloatNDArray:
 
     dp3_sdr, hdrgainmap = load_primary_and_aux(file_name, aux_type)
     image_size = dp3_sdr.shape[1], dp3_sdr.shape[0]
-    hdrgainmap = cv2.resize(hdrgainmap, image_size)  # type: ignore
+    hdrgainmap = cv2.resize(hdrgainmap, image_size, interpolation=cv2.INTER_LANCZOS4)  # type: ignore
+    np.clip(hdrgainmap, 0.0, 1.0, out=hdrgainmap)
 
     return apply_hdrgainmap(dp3_sdr, hdrgainmap, headroom)
 
 
-def load_as_bt2100_pq(file_name: str | Path, white_lum: float = REF_WHITE_LUM) -> FloatNDArray:
+def load_as_bt2020_linear(file_name: str | Path) -> FloatNDArray:
     """
-    Loads an HEIC file and returns the HDR image in non-linear BT.2100 PQ color space.
+    Loads an HEIC file and returns the HDR image in linear BT.2020 color space.
 
     :param file_name: A path to an HEIC image file containing HDR gain map data.
-    :param white_lum: Luminance of reference white in cd/m2 (or nits). Default: 203 nits
 
-    :returns: A float32 array of shape (H, W, 3) in non-linear BT.2100 color space with PQ transfer function,
-        with values between 0 and 1.
+    :returns: A float32 array of shape (H, W, 3) in linear BT.2020 color space, with non-negative values.
     """
     dp3_linear = load_as_displayp3_linear(file_name)
-    bt2020_linear = displayp3_to_bt2020(dp3_linear)
-    return colour.models.eotf_inverse_BT2100_PQ(white_lum * bt2020_linear)
+    return displayp3_to_bt2020(dp3_linear)
 
 
-def quantize_to_uint16(float_array: FloatNDArray) -> npt.NDArray[np.uint16]:
+def quantize_bt2020_to_bt2100_pq(
+    bt2020_linear: FloatNDArray,
+    white_lum: float = REF_WHITE_LUM,
+) -> npt.NDArray[np.uint16]:
+    """
+    Quantize RGB pixel values in linear BT.2020 color space to non-linear BT.2100 PQ color space.
+
+    :param bt2020_linear: A float32 array of shape (H, W, 3) in linear BT.2020 color space, with non-negative values.
+    :param white_lum: Luminance of reference white in cd/m2 (or nits). Default: 203 nits
+
+    :returns: A uint16 array of shape (H, W, 3) in non-linear BT.2100 color space with PQ transfer function,
+        with values between 0 and 2^16 - 1.
+    """
+    bt2100_pq = colour.models.eotf_inverse_BT2100_PQ(white_lum * bt2020_linear)
+    return quantize_unit_interval_to_uint16(bt2100_pq)
+
+
+def quantize_unit_interval_to_uint16(float_array: FloatNDArray) -> npt.NDArray[np.uint16]:
     """
     Quantizes a floating point numpy array with values in the unit interval to a 16-bit unsigned integer.
 
