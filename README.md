@@ -29,15 +29,22 @@ pip install .
 
 ## Usage
 
-CLI tool:
+### CLI Tool
 
 ```
 apple-hdr-heic-decode input.heic output.png
 apple-hdr-heic-decode input.heic output.heic -q 95
-apple-hdr-heic-decode input.heic output.avif -b 12
 ```
 
-Library usage:
+Lossless conversion:
+
+```
+apple-hdr-heic-decode input.heic output.avif -b 12 -y 444
+```
+
+Note: With 12-bit channels (in AVIF or HEIC), it's not truly lossless compared to 16-bit channels in PNG, but it's close enough.
+
+### Library Usage
 
 ```py
 from apple_hdr_heic import load_as_bt2100_pq, quantize_to_uint16
@@ -47,7 +54,7 @@ bt2100_pq_u16 = quantize_to_uint16(bt2100_pq)
 cv2.imwrite("output.png", bt2100_pq_u16[:, :, ::-1])
 ```
 
-Note: The output file `output.png` (in both examples above) does not contain the necessary [cICP](https://en.wikipedia.org/wiki/Coding-independent_code_points) metadata that denotes it to have `bt2020` (9) color primaries and `smpte2084` (16) transfer characteristics.
+Note: The output file `output.png` (in examples above) does not contain the necessary [cICP](https://en.wikipedia.org/wiki/Coding-independent_code_points) metadata that denotes it to have `bt2020` (9) color primaries and `smpte2084` (16) transfer characteristics. Therefore, all image viewers will display them incorrectly.
 
 ## Development
 
@@ -92,11 +99,9 @@ uv tool install flit
 flit build --no-use-vcs
 ```
 
-## Notes About HEIC and AVIF Output
+## Notes About AVIF Output
 
-The default `--quality` when using an output format of `.heic` or `.avif` is "lossless", however it is not truly lossless in the same sense as with PNG, because PNG uses 16-bits per channel, while HEIC and AVIF can only use up to 12-bits per channel. Furthermore, AVIF uses 4:2:0 chroma-subsampling, which is not "lossless".
-
-If you want to produce an AVIF file with more control (e.g., with 4:4:4 chroma-subsampling), first use this tool to produce a PNG file, then use [libavif](https://github.com/AOMediaCodec/libavif) to convert the PNG to AVIF:
+If you want to use a different AVIF encoder, first use this tool to produce a PNG file, then use [libavif](https://github.com/AOMediaCodec/libavif) to convert the PNG to AVIF with `--cicp` set to `9/16/9`:
 
 ```
 avifenc -s 4 -j 4 --min 1 --max 56 -a end-usage=q -a cq-level=10 -a tune=ssim -a color:enable-qm=1 \

@@ -26,6 +26,10 @@ def main() -> None:
         "-b", "--bitdepth", type=int, default=10, choices=[10, 12],
         help="Output channel bit-depth; ignored for .png (default: 10-bit)",
     )  # fmt: skip
+    parser.add_argument(
+        "-y", "--yuv", type=str, default=None, choices=["420", "422", "444"],
+        help="Output chroma subsampling; ignored for .png (default: 420)",
+    )  # fmt: skip
     args = parser.parse_args()
 
     assert args.input_image.lower().endswith(".heic")
@@ -36,9 +40,22 @@ def main() -> None:
     if output_ext == ".png":
         write_png(args.output_image, bt2100_pq_u16)
     elif output_ext == ".heic":
-        write_heif(args.output_image, bt2100_pq_u16, quality=args.quality, bitdepth=args.bitdepth)
+        write_heif(
+            args.output_image,
+            bt2100_pq_u16,
+            quality=args.quality,
+            bitdepth=args.bitdepth,
+            yuv=args.yuv,
+        )
     elif output_ext == ".avif":
-        write_heif(args.output_image, bt2100_pq_u16, format="AVIF", quality=args.quality, bitdepth=args.bitdepth)
+        write_heif(
+            args.output_image,
+            bt2100_pq_u16,
+            format="AVIF",
+            quality=args.quality,
+            bitdepth=args.bitdepth,
+            yuv=args.yuv,
+        )
     else:
         raise ValueError(f"Output file type not supported: {output_ext}")
 
@@ -53,7 +70,7 @@ def write_png(out_path, rgb_data):
     #       see https://github.com/randy408/libspng/issues/218
 
 
-def write_heif(out_path, rgb_data, format="HEIF", quality=-1, bitdepth=10):
+def write_heif(out_path, rgb_data, format="HEIF", quality=-1, bitdepth=10, yuv=None):
     if bitdepth == 12:
         pillow_heif.options.SAVE_HDR_TO_12_BIT = True
     imsize = (rgb_data.shape[1], rgb_data.shape[0])
@@ -67,7 +84,7 @@ def write_heif(out_path, rgb_data, format="HEIF", quality=-1, bitdepth=10):
     added_image.info["transfer_characteristics"] = 16
     added_image.info["matrix_coefficients"] = 9
     added_image.info["full_range_flag"] = 1
-    heif_file.save(out_path, format=format, quality=quality)
+    heif_file.save(out_path, format=format, quality=quality, chroma=yuv)
 
 
 if __name__ == "__main__":
