@@ -8,6 +8,7 @@ import pillow_heif
 from pillow_heif import HeifFile
 
 from apple_hdr_heic import load_as_bt2020_linear, quantize_bt2020_to_bt2100_pq
+from apple_hdr_heic.lib import REF_WHITE_LUM
 
 
 def main() -> None:
@@ -41,9 +42,7 @@ def main() -> None:
     output_ext = Path(args.output_image).suffix.lower()
     if output_ext == ".exr":
         bitdepth = checked_bitdepth(args.bitdepth, [16, 32])
-        if bitdepth == 16:
-            bt2020_linear = bt2020_linear.astype('float16')
-        write_exr(args.output_image, bt2020_linear)
+        write_exr(args.output_image, bt2020_linear, bitdepth=bitdepth)
         return
     bt2100_pq = quantize_bt2020_to_bt2100_pq(bt2020_linear)
     if output_ext == ".png":
@@ -99,14 +98,18 @@ def write_heif(out_path, rgb_data, format="HEIF", quality=-1, bitdepth=10, yuv=N
     heif_file.save(out_path, format=format, quality=quality, chroma=yuv)
 
 
-def write_exr(out_path, rgb_data):
-    channels = {"RGB": rgb_data}
+def write_exr(out_path, rgb_data, bitdepth=16):
     primaries = colour.RGB_COLOURSPACES["ITU-R BT.2020"].primaries
     whitepoint = colour.RGB_COLOURSPACES["ITU-R BT.2020"].whitepoint
+    rgb_data *= REF_WHITE_LUM / 100  # change white luminance at RGB(1.0, 1.0, 1.0) to 100
+    if bitdepth == 16:
+        rgb_data = rgb_data.astype('float16')
+    channels = {"RGB": rgb_data}
     header = {
         "compression": OpenEXR.ZIP_COMPRESSION,
         "type": OpenEXR.scanlineimage,
         "chromaticities": (*primaries.flatten().tolist(), *whitepoint.tolist()),
+        "whiteLuminance": 100.0,
     }
     with OpenEXR.File(header, channels) as outfile:
         outfile.write(out_path)
