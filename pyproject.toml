@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "apple-hdr-heic"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
     { name="John Charankattu", email="john.ch.fr@gmail.com" },
 ]
@@ -35,7 +35,7 @@ apple-hdr-heic-decoder = "apple_hdr_heic.decoder:main"
 Homepage = "https://github.com/johncf/apple-hdr-heic"
 
 [tool.ruff]
-line-length = 110
+line-length = 120
 
 [tool.mypy]
 python_version = "3.10"

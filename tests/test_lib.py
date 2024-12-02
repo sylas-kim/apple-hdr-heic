@@ -3,10 +3,10 @@ import pathlib
 import numpy as np
 
 from apple_hdr_heic import (
-    combine_hdrgainmap,
+    apply_hdrgainmap,
     displayp3_to_bt2020,
-    load_and_combine_gainmap,
     load_as_bt2100_pq,
+    load_as_displayp3_linear,
     quantize_to_uint16,
 )
 
@@ -24,18 +24,18 @@ def test_quantize() -> None:
     assert np.all(qarr2 == np.array([0, 0xFFFF]))
 
 
-def test_combine() -> None:
+def test_apply_hdrgainmap() -> None:
     test_sdr = np.linspace(0.0, 1.0, num=12, dtype=np.float32).reshape(2, 2, 3)
     test_gainmap = np.linspace(0.0, 1.0, num=4, dtype=np.float32).reshape(2, 2)
     headroom = 4.0
-    combined = combine_hdrgainmap(test_sdr, test_gainmap, headroom)
-    assert np.all(0 <= combined)
-    assert np.all(combined <= headroom)
-    assert combined.dtype == np.float32
-    quant_combined = quantize_to_uint16(combined / headroom)
+    test_hdr = apply_hdrgainmap(test_sdr, test_gainmap, headroom)
+    assert np.all(0 <= test_hdr)
+    assert np.all(test_hdr <= headroom)
+    assert test_hdr.dtype == np.float32
+    quant_hdr = quantize_to_uint16(test_hdr / headroom)
     qc_expected = [[[0, 142, 454], [1260, 2268, 3635]],
                    [[9344, 13107, 17630], [41622, 52790, 0xFFFF]]]  # fmt: skip
-    assert np.all(quant_combined == qc_expected)
+    assert np.all(quant_hdr == qc_expected)
 
 
 def test_dp3_to_bt2020() -> None:
@@ -49,11 +49,11 @@ def test_dp3_to_bt2020() -> None:
     assert np.allclose(bt2020, bt2020_expected)
 
 
-def test_load_and_combine() -> None:
-    dp3_hdr = load_and_combine_gainmap(DATA_DIR / "hdr-sample.heic")
-    assert np.all(dp3_hdr >= 0.0)
-    assert np.all(dp3_hdr <= 7.372)  # note: 7.3717 is the headroom
-    assert dp3_hdr.dtype == np.float32
+def test_load_as_dp3_lin() -> None:
+    dp3_lin = load_as_displayp3_linear(DATA_DIR / "hdr-sample.heic")
+    assert np.all(dp3_lin >= 0.0)
+    assert np.all(dp3_lin <= 7.372)  # note: 7.3717 is the headroom
+    assert dp3_lin.dtype == np.float32
 
 
 def test_load_as_bt2100_pq() -> None:

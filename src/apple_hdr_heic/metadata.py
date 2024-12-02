@@ -34,8 +34,7 @@ class AppleHDRMetadata:
                     metadata.aux_type = val
         return metadata
 
-    @property
-    def headroom(self) -> float:
+    def compute_headroom(self) -> float:
         # ref https://developer.apple.com/documentation/appkit/images_and_pdf/applying_apple_hdr_effect_to_your_photos
         assert self.maker33 is not None and self.maker48 is not None
         if self.maker33 < 1.0:
