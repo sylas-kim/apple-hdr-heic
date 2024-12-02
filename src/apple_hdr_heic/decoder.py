@@ -39,19 +39,12 @@ def main() -> None:
     output_ext = Path(args.output_image).suffix.lower()
     if output_ext == ".png":
         write_png(args.output_image, bt2100_pq_u16)
-    elif output_ext == ".heic":
+    elif output_ext in {".avif", ".heic"}:
+        format = "HEIF" if output_ext == ".heic" else "AVIF"
         write_heif(
             args.output_image,
             bt2100_pq_u16,
-            quality=args.quality,
-            bitdepth=args.bitdepth,
-            yuv=args.yuv,
-        )
-    elif output_ext == ".avif":
-        write_heif(
-            args.output_image,
-            bt2100_pq_u16,
-            format="AVIF",
+            format=format,
             quality=args.quality,
             bitdepth=args.bitdepth,
             yuv=args.yuv,
