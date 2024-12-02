@@ -21,10 +21,10 @@ To install the latest published version, do (preferrably in a [virtual environme
 pip install apple-hdr-heic
 ```
 
-Or if you want the latest development version, clone this repository, and do:
+Or if you want the latest development version, install using a Github archive link:
 
 ```
-pip install .
+pip install https://github.com/johncf/apple-hdr-heic/archive/master.tar.gz
 ```
 
 ## Usage
@@ -99,9 +99,15 @@ uv tool install flit
 flit build --no-use-vcs
 ```
 
-## Notes About AVIF Output
+## Miscellaneous Notes
 
-If you want to use a different AVIF encoder, first use this tool to produce a PNG file, then use [libavif](https://github.com/AOMediaCodec/libavif) to convert the PNG to AVIF with `--cicp` set to `9/16/9`:
+### About 12-bit HEIC Files
+
+Although this tool supports 12-bit HEIC output, it doesn't seem to be widely supported, even in Apple softwares.
+
+### About AVIF Output
+
+If you want to use a different AVIF encoder, first use this tool to produce a PNG file, then use [libavif](https://github.com/AOMediaCodec/libavif) with `--cicp` set to `9/16/9` to convert the PNG to AVIF:
 
 ```
 avifenc -s 4 -j 4 --min 1 --max 56 -a end-usage=q -a cq-level=10 -a tune=ssim -a color:enable-qm=1 \
