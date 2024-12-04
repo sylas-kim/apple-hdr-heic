@@ -1,7 +1,7 @@
 # apple-hdr-heic
 
 A library/tool to decode photos (HEIC files) taken on an iPhone that contain HDR gain map, and convert it to standard HDR representations such as:
-1. A 32-bit per channel float representation in _linear_ [Rec. 2020](https://en.wikipedia.org/wiki/Rec._2020) color space, which could be saved to an EXR file.
+1. A 16- or 32-bit per channel float representation in a given _linear_ color space, which could be saved to an EXR file.
 1. A 48-bit (16-bit per channel) representation as per [Rec. 2100](https://en.wikipedia.org/wiki/Rec._2100) with PQ transfer function, which could be saved to a PNG file.
 
 **Disclaimer:** This project is _not_ affiliated with, or endorsed by, Apple Inc. or any of its subsidiaries.
@@ -38,13 +38,21 @@ apple-hdr-heic-decode input.heic output.png
 apple-hdr-heic-decode input.heic output.heic -q 95
 ```
 
-Lossless conversion:
+Near-lossless conversion:
 
 ```
 apple-hdr-heic-decode input.heic output.avif -b 12 -y 444
 ```
 
-Note: With 12-bit channels (in AVIF or HEIC), it's not truly lossless compared to 16-bit channels in PNG, but it's close enough.
+Note: With 12-bit channels (in AVIF or HEIC), it's not truly lossless compared to 16-bit channels in PNG or 32-bit channels in EXR, but it's close enough.
+
+Truly lossless conversion:
+
+```
+apple-hdr-heic-decode input.heic output.exr -b 32 --colourspace "ROMM RGB"
+```
+
+Note: Even though this preserves all the HDR information in the original image, the HDR-to-SDR tone-mapping information will be lost. To preserve that, an additional layer of information is required (like the HDR gain map in the original image, which is an inverse tone-map).
 
 ### Library Usage
 

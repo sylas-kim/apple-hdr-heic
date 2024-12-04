@@ -45,21 +45,25 @@ def apply_hdrgainmap(
     return dp3_hdr_linear
 
 
-def displayp3_to_bt2020(dp3_linear: FloatNDArray) -> FloatNDArray:
+def clipped_colorspace_transform(rgb_linear: FloatNDArray, input_space_name: str, output_space_name: str) -> FloatNDArray:
     """
-    Converts an image in Display P3 color space to BT.2020 color space, using simple linear transformation.
+    Converts an image from a given linear color space to another linear color space, using simple linear transformation.
 
-    :param dp3_linear: A numpy array of shape (H, W, 3) in linear Display P3 color space.
+    :param rgb_linear: A numpy array of shape (H, W, 3).
+    :param input_space_name: The name of the linear color space that ``rgb_linear`` is in.
+    :param output_space_name: The name of the linear color space that ``rgb_linear`` should be transformed to.
 
-    :returns: A numpy array of shape (H, W, 3) in linear BT.2020 color space,
-        with negative values truncated to zero and dtype the same as ``dp3_sdr``
+    :returns: A numpy array of shape (H, W, 3) after linear color space transformation of ``rgb_linear``,
+        with negative values truncated to zero.
     """
-    assert np.issubdtype(dp3_linear.dtype, np.floating)
-    input_colourspace = colour.RGB_COLOURSPACES["Display P3"]
-    output_colourspace = colour.RGB_COLOURSPACES["ITU-R BT.2020"]
-    transform_matrix = colour.matrix_RGB_to_RGB(input_colourspace, output_colourspace).astype(dp3_linear.dtype)
-    bt2020_linear = np.tensordot(dp3_linear, transform_matrix, axes=(2, 1))
-    return np.clip(bt2020_linear, 0.0, None, out=bt2020_linear)
+    assert np.issubdtype(rgb_linear.dtype, np.floating)
+    assert input_space_name in colour.RGB_COLOURSPACES
+    assert output_space_name in colour.RGB_COLOURSPACES
+    input_space = colour.RGB_COLOURSPACES[input_space_name]
+    output_space = colour.RGB_COLOURSPACES[output_space_name]
+    transform_matrix = colour.matrix_RGB_to_RGB(input_space, output_space).astype(rgb_linear.dtype)
+    outrgb_linear = np.tensordot(rgb_linear, transform_matrix, axes=(2, 1))
+    return np.clip(outrgb_linear, 0.0, None, out=outrgb_linear)
 
 
 def load_primary_and_aux(file_name: str | Path, aux_type: str) -> tuple[FloatNDArray, FloatNDArray]:
@@ -107,7 +111,8 @@ def load_as_bt2020_linear(file_name: str | Path) -> FloatNDArray:
     :returns: A float32 array of shape (H, W, 3) in linear BT.2020 color space, with non-negative values.
     """
     dp3_linear = load_as_displayp3_linear(file_name)
-    return displayp3_to_bt2020(dp3_linear)
+    bt2020_linear = clipped_colorspace_transform(dp3_linear, "Display P3", "ITU-R BT.2020")
+    return bt2020_linear
 
 
 def quantize_bt2020_to_bt2100_pq(

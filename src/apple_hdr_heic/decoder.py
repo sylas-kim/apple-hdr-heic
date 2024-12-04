@@ -7,8 +7,10 @@ import OpenEXR
 import pillow_heif
 from pillow_heif import HeifFile
 
-from apple_hdr_heic import load_as_bt2020_linear, quantize_bt2020_to_bt2100_pq
+from apple_hdr_heic import clipped_colorspace_transform, load_as_displayp3_linear, quantize_bt2020_to_bt2100_pq
 from apple_hdr_heic.lib import REF_WHITE_LUM
+
+COLOURSPACE_CHOICES = list(colour.RGB_COLOURSPACES.keys())
 
 
 def main() -> None:
@@ -16,8 +18,7 @@ def main() -> None:
         prog="apple-hdr-heic-decoder",
         description=(
             "Decode an HEIC image file containing HDR gain map and other metadata (in Apple's format) to "
-            "a 16-bit per channel (48-bit) PNG file, a 10- or 12-bit HEIC or AVIF file, or a 16- or 32-bit EXR file "
-            "in BT.2100 color space with PQ transfer function."
+            "a 16-bit per channel (48-bit) PNG file, a 10- or 12-bit HEIC or AVIF file, or a 16- or 32-bit EXR file."
         ),
     )
     parser.add_argument("input_image", help="Input HEIC image path")
@@ -34,16 +35,22 @@ def main() -> None:
         "-y", "--yuv", type=str, default=None, choices=["420", "422", "444"],
         help="Output chroma subsampling; ignored for .png (default: 420)",
     )  # fmt: skip
+    parser.add_argument(
+        "--colourspace", type=str, default="ITU-R BT.2020", choices=COLOURSPACE_CHOICES,
+        help="Output colour space; only relevant for .exr (default: ITU-R BT.2020)",
+    )  # fmt: skip
     args = parser.parse_args()
 
     assert args.input_image.lower().endswith(".heic")
     assert -1 <= args.quality <= 100
-    bt2020_linear = load_as_bt2020_linear(args.input_image)
+    dp3_linear = load_as_displayp3_linear(args.input_image)
     output_ext = Path(args.output_image).suffix.lower()
     if output_ext == ".exr":
+        rgb_linear = clipped_colorspace_transform(dp3_linear, "Display P3", args.colourspace)
         bitdepth = checked_bitdepth(args.bitdepth, [16, 32])
-        write_exr(args.output_image, bt2020_linear, bitdepth=bitdepth)
+        write_exr(args.output_image, rgb_linear, bitdepth=bitdepth, colourspace=args.colourspace)
         return
+    bt2020_linear = clipped_colorspace_transform(dp3_linear, "Display P3", "ITU-R BT.2020")
     bt2100_pq = quantize_bt2020_to_bt2100_pq(bt2020_linear)
     if output_ext == ".png":
         bitdepth = checked_bitdepth(args.bitdepth, [16])
@@ -98,9 +105,9 @@ def write_heif(out_path, rgb_data, format="HEIF", quality=-1, bitdepth=10, yuv=N
     heif_file.save(out_path, format=format, quality=quality, chroma=yuv)
 
 
-def write_exr(out_path, rgb_data, bitdepth=16):
-    primaries = colour.RGB_COLOURSPACES["ITU-R BT.2020"].primaries
-    whitepoint = colour.RGB_COLOURSPACES["ITU-R BT.2020"].whitepoint
+def write_exr(out_path, rgb_data, bitdepth=16, colourspace="ITU-R BT.2020"):
+    primaries = colour.RGB_COLOURSPACES[colourspace].primaries
+    whitepoint = colour.RGB_COLOURSPACES[colourspace].whitepoint
     rgb_data *= REF_WHITE_LUM / 100  # change white luminance at RGB(1.0, 1.0, 1.0) to 100
     if bitdepth == 16:
         rgb_data = rgb_data.astype('float16')
