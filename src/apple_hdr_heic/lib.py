@@ -45,7 +45,9 @@ def apply_hdrgainmap(
     return dp3_hdr_linear
 
 
-def clipped_colorspace_transform(rgb_linear: FloatNDArray, input_space_name: str, output_space_name: str) -> FloatNDArray:
+def clipped_colorspace_transform(
+    rgb_linear: FloatNDArray, input_space_name: str, output_space_name: str
+) -> FloatNDArray:
     """
     Converts an image from a given linear color space to another linear color space, using simple linear transformation.
 

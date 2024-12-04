@@ -110,7 +110,7 @@ def write_exr(out_path, rgb_data, bitdepth=16, colourspace="ITU-R BT.2020"):
     whitepoint = colour.RGB_COLOURSPACES[colourspace].whitepoint
     rgb_data *= REF_WHITE_LUM / 100  # change white luminance at RGB(1.0, 1.0, 1.0) to 100
     if bitdepth == 16:
-        rgb_data = rgb_data.astype('float16')
+        rgb_data = rgb_data.astype("float16")
     channels = {"RGB": rgb_data}
     header = {
         "compression": OpenEXR.ZIP_COMPRESSION,
