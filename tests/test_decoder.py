@@ -14,7 +14,7 @@ def _output_format_test(output_format: str, q=None, b=None, y=None, colourspace=
     assert output_format in {"png", "heic", "avif", "exr"}
     outfile = Path(f"/tmp/hdr-out.{output_format}")
     assert not outfile.exists()
-    args = [ENTRYPOINT, TEST_FILE, outfile]
+    args: list[str | Path] = [ENTRYPOINT, TEST_FILE, outfile]
     if q is not None:
         args.extend(["-q", str(q)])
     if b is not None:
