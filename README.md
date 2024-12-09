@@ -49,7 +49,7 @@ Note: With 12-bit channels (in AVIF or HEIC), it's not truly lossless compared t
 Truly lossless conversion:
 
 ```
-apple-hdr-heic-decode input.heic output.exr -b 32 --colourspace "ROMM RGB"
+apple-hdr-heic-decode input.heic output.exr -b 32 --colorspace "ROMM RGB"
 ```
 
 Note: Even though this preserves all the HDR information in the original image, the HDR-to-SDR tone-mapping information will be lost. To preserve that, an additional layer of information is required (like the HDR gain map in the original image, which is an inverse tone-map).

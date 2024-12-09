@@ -10,7 +10,7 @@ from pillow_heif import HeifFile
 from apple_hdr_heic import clipped_colorspace_transform, load_as_displayp3_linear, quantize_bt2020_to_bt2100_pq
 from apple_hdr_heic.lib import REF_WHITE_LUM
 
-COLOURSPACE_CHOICES = list(colour.RGB_COLOURSPACES.keys())
+COLORSPACE_CHOICES = list(colour.RGB_COLOURSPACES.keys())
 
 
 def main() -> None:
@@ -36,8 +36,8 @@ def main() -> None:
         help="Output chroma subsampling; ignored for .png (default: 420)",
     )  # fmt: skip
     parser.add_argument(
-        "--colourspace", type=str, default="ITU-R BT.2020", choices=COLOURSPACE_CHOICES,
-        help="Output colour space; only relevant for .exr (default: ITU-R BT.2020)",
+        "--colorspace", type=str, default="ITU-R BT.2020", choices=COLORSPACE_CHOICES,
+        help="Output color space; only relevant for .exr (default: ITU-R BT.2020)",
     )  # fmt: skip
     args = parser.parse_args()
 
@@ -46,9 +46,9 @@ def main() -> None:
     dp3_linear = load_as_displayp3_linear(args.input_image)
     output_ext = Path(args.output_image).suffix.lower()
     if output_ext == ".exr":
-        rgb_linear = clipped_colorspace_transform(dp3_linear, "Display P3", args.colourspace)
+        rgb_linear = clipped_colorspace_transform(dp3_linear, "Display P3", args.colorspace)
         bitdepth = checked_bitdepth(args.bitdepth, [16, 32])
-        write_exr(args.output_image, rgb_linear, bitdepth=bitdepth, colourspace=args.colourspace)
+        write_exr(args.output_image, rgb_linear, bitdepth=bitdepth, colorspace=args.colorspace)
         return
     bt2020_linear = clipped_colorspace_transform(dp3_linear, "Display P3", "ITU-R BT.2020")
     bt2100_pq = quantize_bt2020_to_bt2100_pq(bt2020_linear)
@@ -105,9 +105,9 @@ def write_heif(out_path, rgb_data, format="HEIF", quality=-1, bitdepth=10, yuv=N
     heif_file.save(out_path, format=format, quality=quality, chroma=yuv)
 
 
-def write_exr(out_path, rgb_data, bitdepth=16, colourspace="ITU-R BT.2020"):
-    primaries = colour.RGB_COLOURSPACES[colourspace].primaries
-    whitepoint = colour.RGB_COLOURSPACES[colourspace].whitepoint
+def write_exr(out_path, rgb_data, bitdepth=16, colorspace="ITU-R BT.2020"):
+    primaries = colour.RGB_COLOURSPACES[colorspace].primaries
+    whitepoint = colour.RGB_COLOURSPACES[colorspace].whitepoint
     rgb_data *= REF_WHITE_LUM / 100  # change white luminance at RGB(1.0, 1.0, 1.0) to 100
     if bitdepth == 16:
         rgb_data = rgb_data.astype("float16")

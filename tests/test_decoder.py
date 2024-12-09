@@ -10,7 +10,7 @@ def test_help():
     assert subp.returncode == 0
 
 
-def _output_format_test(output_format: str, q=None, b=None, y=None, colourspace=None):
+def _output_format_test(output_format: str, q=None, b=None, y=None, colorspace=None):
     assert output_format in {"png", "heic", "avif", "exr"}
     outfile = Path(f"/tmp/hdr-out.{output_format}")
     assert not outfile.exists()
@@ -21,8 +21,8 @@ def _output_format_test(output_format: str, q=None, b=None, y=None, colourspace=
         args.extend(["-b", str(b)])
     if y is not None:
         args.extend(["-y", str(y)])
-    if colourspace is not None:
-        args.extend(["--colourspace", colourspace])
+    if colorspace is not None:
+        args.extend(["--colorspace", colorspace])
     subp = subprocess.run(args)
     assert subp.returncode == 0
     assert outfile.exists()
@@ -47,5 +47,5 @@ def test_avif():
 
 def test_exr():
     _output_format_test("exr")
-    _output_format_test("exr", b=16, colourspace="ROMM RGB")
-    _output_format_test("exr", b=32, colourspace="Display P3")
+    _output_format_test("exr", b=16, colorspace="ROMM RGB")
+    _output_format_test("exr", b=32, colorspace="Display P3")
