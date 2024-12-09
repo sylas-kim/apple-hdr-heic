@@ -123,3 +123,9 @@ If you want to use a different AVIF encoder, first use this tool to produce a PN
 avifenc -s 4 -j 4 --min 1 --max 56 -a end-usage=q -a cq-level=10 -a tune=ssim -a color:enable-qm=1 \
     -a color:enable-chroma-deltaq=1 -d 12 --cicp 9/16/9 output.png output.avif
 ```
+
+### About EXR Output
+
+Although the EXR file created by `apple-hdr-heic-decoder` tool contains colorspace information (specifically, color primaries and white point), it is not read/used by most softwares out there. Therefore it's recommended to use the `--colorspace` argument to make the EXR file's color space match what the software consuming the file expects.
+
+For example, [Affinity Photo 2](https://affinity.serif.com/en-us/photo/) expects "ROMM RGB" by default when opening an EXR file. This default colorspace for 32-bit HDR can be changed from Settings > Color options in Affinity Photo 2.
