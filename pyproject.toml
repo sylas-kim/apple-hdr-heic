@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "apple-hdr-heic"
-version = "0.1.0a1"
+version = "0.1.0"
 authors = [
     { name="John Charankattu", email="john.ch.fr@gmail.com" },
 ]
