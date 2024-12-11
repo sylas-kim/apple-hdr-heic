@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "apple-hdr-heic"
-version = "0.0.3"
+version = "0.1.0a1"
 authors = [
     { name="John Charankattu", email="john.ch.fr@gmail.com" },
 ]
@@ -27,7 +27,7 @@ dependencies = [
   "pillow_heif>=0.20.0",
   "PyExifTool>=0.5.6",
 ]
-keywords = ["heic", "heif", "converter", "decoder", "HDR", "HDR Gain Map", "iPhone"]
+keywords = ["heic", "heif", "converter", "decoder", "HDR", "HDR Gain Map", "iPhone", "EXR"]
 
 [project.scripts]
 apple-hdr-heic-decoder = "apple_hdr_heic.decoder:main"
