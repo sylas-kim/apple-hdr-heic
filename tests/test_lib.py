@@ -65,10 +65,9 @@ def test_load_as_bt2100_lin() -> None:
 
 
 def test_quantize_bt2100_pq() -> None:
-    bt2020 = np.array([[[0, 0, 0], [1, 1, 1]],
-                       [[2, 0, 0], [0, 2, 2]]], dtype=np.float32)  # fmt: skip
-    bt2100_pq = quantize_bt2020_to_bt2100_pq(bt2020)
+    bt2020 = np.array([[[0, 0.5, 1], [2, 3, 4]], [[8, 16, 32], [50, 100, 200]]], dtype=np.float32)  # fmt: skip
+    bt2100_pq = quantize_bt2020_to_bt2100_pq(bt2020, white_lum=100)
     assert bt2100_pq.dtype == np.uint16
-    bt2100_pq_expected = [[[0, 0, 0], [38056, 38056, 38056]],
-                          [[42871, 0, 0], [0, 42871, 42871]]]  # fmt: skip
+    bt2100_pq_expected = [[[0, 28854, 33297], [37954, 40754, 42767]],
+                          [[47679, 52631, 57571], [60721, 65535, 65535]]]  # fmt: skip
     assert np.all(bt2100_pq == bt2100_pq_expected)
