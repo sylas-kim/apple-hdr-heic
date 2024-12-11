@@ -2,14 +2,14 @@ import pathlib
 
 import numpy as np
 
-from apple_hdr_heic import (
+from apple_hdr_heic.lib import (
     apply_hdrgainmap,
     clipped_colorspace_transform,
     load_as_bt2020_linear,
     load_as_displayp3_linear,
     quantize_bt2020_to_bt2100_pq,
+    quantize_unit_interval_to_uint16,
 )
-from apple_hdr_heic.lib import quantize_unit_interval_to_uint16
 
 DATA_DIR = pathlib.Path(__file__).parent.absolute() / "data"
 
