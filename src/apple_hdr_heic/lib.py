@@ -92,7 +92,7 @@ def load_as_displayp3_linear(file_name: str | Path) -> FloatNDArray:
     :returns: A float32 numpy array of shape (H, W, 3) in linear Display P3 color space.
     """
     hdr_metadata = AppleHDRMetadata.from_file(file_name)
-    assert hdr_metadata.profile_desc.startswith("Display P3")
+    assert hdr_metadata.profile_desc.startswith("Display P3") or hdr_metadata.profile_desc == "Linear Gray"
     aux_type = hdr_metadata.aux_type or "urn:com:apple:photo:2020:aux:hdrgainmap"
     headroom = hdr_metadata.compute_headroom()
 
